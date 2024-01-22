@@ -1,12 +1,12 @@
 import Lake
 open Lake DSL
 
-package «lambda» where
+
+package «F_system» where
   -- add package configuration options here
 
-lean_lib «Lambda» where
+lean_lib «FSystem» where
   -- add library configuration options here
-
 @[default_target]
-lean_exe «lambda» where
+lean_exe «f_system» where
   root := `Main
