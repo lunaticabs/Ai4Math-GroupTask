@@ -15,23 +15,26 @@ prefix : 90 "` " => Var
 
 
 def subst : Term -> Sym -> Term -> Term
-  | ` x, y, t => if x == y then t else ` x
+  | ` x, y, t => if x = y then t else ` x
 
   | λ x : t, y, z =>
-    if x == y then λ x : t else λ x : (subst t y z)
+    if x = y then λ x : t else λ x : (subst t y z)
 
   | App x y , z, t =>
     subst x z t $ subst y z t
 
 notation : 90 x " [ " y " := " v " ] " => subst x y v
 
-def commute : ∀ M N x y,
-  M [x := N] [y := L] = M [y := L] [x := N] :=
-    fun M N x y =>
+def commute : ∀ M N x y (h : x ≠ y),
+  M [x := N] [y := L] = M [y := L] [x := N [y := L]] :=
+    fun M N x y h => by
       match M with
-      | ` M => sorry
-        -- if M == x then (` M) [y := L][x := N] = (` M) [x := N] [y := L]
-        -- else L = M[y := L][x := N]
+      | ` M =>
+        apply Eq.trans (b := N)
+        by_cases M = x
+        · rw [subst]
+
+
       | (λ α : β) => sorry
       | App α β => sorry
 
