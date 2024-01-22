@@ -31,8 +31,11 @@ def commute : ∀ M N x y (h : x ≠ y),
       match M with
       | ` M =>
         apply Eq.trans (b := N)
-        by_cases M = x
-        · rw [subst]
+        by_cases g : M = x
+        · rw [subst, g]
+          simp
+          match N with
+          |
 
 
       | (λ α : β) => sorry
