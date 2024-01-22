@@ -24,5 +24,5 @@ infixl:40 " =α " =>
 def β_redu : LTerm → LTerm :=
   fun m =>
     match m with
-    | .Appl (.𝕃 q n) p => if (q == n) then p else n
+    | .Appl (.𝕃 _ _) p => p
     | _ => m
