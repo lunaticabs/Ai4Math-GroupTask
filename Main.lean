@@ -1,5 +1,5 @@
 import «FSystem»
-
+/-
 --这是一个最简单的STLC版本，由于STLC只有一个单位类型元素唯一，我们在这里可以使用类型来代替具体的项
 --因此在定义中规约关系几乎被商掉了
 --但是他几乎不可拓展，只能作为一个最初版本
@@ -35,3 +35,36 @@ inductive Term : Ctx → Kind → Type
   | LamElem {Γ : Ctx} {A : Kind} : Lam Γ J → Term Γ J
 
 --这个版本太烂了，我要写个新的
+-/
+
+def Variable : Type := String
+inductive Const : Type where
+  | unit : Const
+  --If you have other types, then you can add more consts to it
+
+inductive Kind where
+  | empty : Kind
+  | unit : Kind
+  | function : Kind → Kind → Kind
+  | new_kind (x : Variable) : Kind
+
+inductive Context : Type where
+  | empty : Context
+  | extend : Context → Variable → Kind → Context
+
+inductive VarIsInContext : Context → Variable → Kind → Type
+  | Z {Γ x A} : VarIsInContext (Context.extend Γ x A) x A
+  | S {Γ x y A B} : VarIsInContext Γ x A → VarIsInContext (Context.extend Γ y B) x A
+
+def Delete (Γ : Context) (x : Variable) (A : Kind) : Context := sorry
+
+inductive Expression : Context → Kind → Type where
+  | unit (Γ : Context) : Expression Γ Kind.unit -- If you have other consts, you can add to it, like ℕ
+  | Var (Γ : Context) (x : Variable) (A : Kind) : VarIsInContext Γ x A → Expression Γ A
+  | Lam (E : Expression Γ B) (x : Variable) (A : Kind) : VarIsInContext Γ x A → Expression (Delete Γ x A) Kind.extend A B
+  | App (E : Expression Γ (Kind.extend A B) ) (F : Expression Γ A) : Expression Γ B
+
+def AlphaReduction {Γ : Context} {A : Kind} (E : Expression Γ A) (x y : Variable) : Expression Γ A :=
+  sorry
+
+def BetaReduction (x : Variable) (A B : Kind) (E : Expression (Context.extend x A .empty) B) (F : Expression (Context.extend x A .empty) A) : Expression Γ
