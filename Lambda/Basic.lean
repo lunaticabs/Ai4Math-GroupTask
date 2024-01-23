@@ -26,20 +26,58 @@ def subst : Term -> Sym -> Term -> Term
 notation : 90 x " [ " y " := " v " ] " => subst x y v
 
 def commute : ∀ M N x y (h : x ≠ y),
-  M [x := N] [y := L] = M [y := L] [x := N [y := L]] :=
-    fun M N x y h => by
-      match M with
-      | ` M =>
-        apply Eq.trans (b := N)
-        by_cases g : M = x
-        · rw [subst, g]
-          simp
-          match N with
-          |
+  M [x := N] [y := L] = M [y := L] [x := N [y := L]] := by
+    intro M N x y h
+    induction M with
+    | Var M =>
+      apply Eq.trans (b := N)
+      by_cases g : M = x
+      · rw [subst, g]
+        simp
+        induction N with
+        | Var N => sorry
+        | Lam _ _ => sorry
+        | App _ _ => sorry
+      · rw [ subst , g ]
 
 
-      | (λ α : β) => sorry
-      | App α β => sorry
+        -- conv in (if M = x then N else ` M) => rw []
+        -- conv =>
+        --   lhs
+        --   congr
+        --   rfl
+        --   rfl
+        --   rfl
+        --   done
+
+      · sorry
+
+
+
+
+    | Lam _ _ => sorry
+    | App _ _ => sorry
+    -- fun M N x y h => by
+      -- match M with
+      -- | ` M =>
+      --   apply Eq.trans (b := N)
+      --   by_cases g : M = x
+      --   · rw [subst, g]
+      --     simp
+      --     match N with
+      --     | ` N => sorry
+      --       -- rw [subst]
+      --       -- have i : M ≠ y
+
+      --     | (λ α : β) => sorry
+      --     | App α β => sorry
+      --   · sorry
+      --   by_cases g : M = y
+      --   · rw [subst, g]
+      --     simp
+
+      -- | (λ α : β) => sorry
+      -- | App α β => sorry
 
 inductive Reduce : Term -> Term -> Type where
   | Reduce : Reduce (App (Lam x t) y) (t[x := y])
