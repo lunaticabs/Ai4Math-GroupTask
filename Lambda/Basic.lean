@@ -48,7 +48,23 @@ def commute : ∀ (M N L : Term) (x y : Sym) (h : x ≠ y),
       simp
       rw [ if_pos ]
       induction N with
-      | Var N => sorry
+      | Var N =>
+        simp
+        by_cases j : N = y
+
+        -- when N = y
+        rw [ if_pos ]
+        -- here's sorry is because x is not in FV(L),
+        -- but this is hard to formal now.
+        sorry
+        exact j
+
+        -- when N ≠ y
+        rw [ if_neg ]
+        -- sorry because of the same reason.
+        sorry
+        exact j
+
       | Lam _ _ => sorry
       | App _ _ => sorry
       repeat exact i
