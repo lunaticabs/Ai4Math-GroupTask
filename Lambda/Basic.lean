@@ -13,7 +13,7 @@ notation : 50 "λ " v " : " d => Lam v d
 infixr : min " $ " => App
 prefix : 90 "` " => Var
 
-
+@[simp]
 def subst : Term -> Sym -> Term -> Term
   | ` x, y, t => if x = y then t else ` x
 
@@ -30,54 +30,20 @@ def commute : ∀ M N x y (h : x ≠ y),
     intro M N x y h
     induction M with
     | Var M =>
-      apply Eq.trans (b := N)
+      have netrans (h : x ≠ y) (g : M = x) : ¬M = y := sorry
+
+      simp
       by_cases g : M = x
-      · rw [subst, g]
-        simp
-        induction N with
-        | Var N => sorry
-        | Lam _ _ => sorry
-        | App _ _ => sorry
-      · rw [ subst , g ]
+      rw [ g ]
+      simp
+      rw [if_neg]
+      simp
+      exact h
 
-
-        -- conv in (if M = x then N else ` M) => rw []
-        -- conv =>
-        --   lhs
-        --   congr
-        --   rfl
-        --   rfl
-        --   rfl
-        --   done
-
-      · sorry
-
-
-
+      sorry
 
     | Lam _ _ => sorry
     | App _ _ => sorry
-    -- fun M N x y h => by
-      -- match M with
-      -- | ` M =>
-      --   apply Eq.trans (b := N)
-      --   by_cases g : M = x
-      --   · rw [subst, g]
-      --     simp
-      --     match N with
-      --     | ` N => sorry
-      --       -- rw [subst]
-      --       -- have i : M ≠ y
-
-      --     | (λ α : β) => sorry
-      --     | App α β => sorry
-      --   · sorry
-      --   by_cases g : M = y
-      --   · rw [subst, g]
-      --     simp
-
-      -- | (λ α : β) => sorry
-      -- | App α β => sorry
 
 inductive Reduce : Term -> Term -> Type where
   | Reduce : Reduce (App (Lam x t) y) (t[x := y])
@@ -93,3 +59,5 @@ def β_redu : Term → Term :=
 
 
 variable (m : Sym )(n p q: Term)
+
+#check if_neg
