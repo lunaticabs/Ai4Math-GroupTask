@@ -61,10 +61,25 @@ def Delete (Γ : Context) (x : Variable) (A : Kind) : Context := sorry
 inductive Expression : Context → Kind → Type where
   | unit (Γ : Context) : Expression Γ Kind.unit -- If you have other consts, you can add to it, like ℕ
   | Var (Γ : Context) (x : Variable) (A : Kind) : VarIsInContext Γ x A → Expression Γ A
-  | Lam (E : Expression Γ B) (x : Variable) (A : Kind) : VarIsInContext Γ x A → Expression (Delete Γ x A) Kind.extend A B
-  | App (E : Expression Γ (Kind.extend A B) ) (F : Expression Γ A) : Expression Γ B
+  | Lam (E : Expression Γ B) (x : Variable) (A : Kind) : VarIsInContext Γ x A → Expression (Delete Γ x A) (Kind.function A B)
+  | App (E : Expression Γ (Kind.function A B) ) (F : Expression Γ A) : Expression Γ B
 
 def AlphaReduction {Γ : Context} {A : Kind} (E : Expression Γ A) (x y : Variable) : Expression Γ A :=
   sorry
 
-def BetaReduction (x : Variable) (A B : Kind) (E : Expression (Context.extend x A .empty) B) (F : Expression (Context.extend x A .empty) A) : Expression Γ
+def BetaReduction (Γ : Context) (x : Variable) (A B : Kind) (E : Expression Γ B) (F : Expression (Delete Γ x A) A) (pf : VarIsInContext Γ x A) :  Expression (Delete Γ x A) B :=
+  sorry
+
+def pfVar (Γ : Context) (x : Variable) (A : Kind) : VarIsInContext (Context.extend Γ x A) x A:= VarIsInContext.Z
+def Varattend (E : Expression Γ (Kind.function A B)) (x : Variable) (A : Kind) : Expression (Context.extend Γ x A) (Kind.function A B) := sorry
+
+def YitaReduction (Γ : Context)  (x : Variable) (A : Kind) {B : Kind} (E : Expression Γ (Kind.function A B)) : Expression Γ (Kind.function A B) :=
+  Expression.Lam (Expression.App (Varattend E x A) (Expression.Var (Context.extend Γ x A) x A (pfVar Γ x A))) x A
+
+inductive EquivRel : Expression ΓA A → Expression ΓB B → Prop where
+  | refl {Γ: Context} {K : Kind} {E : Expression Γ K} : EquivRel E E
+  | symm {ΓA ΓB : Context} {A B : Kind} {E : Expression ΓA A} {F : Expression ΓB B} : EquivRel E F → EquivRel F E
+  | trans {ΓA ΓB ΓC: Context} {A B C : Kind} {E : Expression ΓA A} {F : Expression ΓB B} {G : Expression ΓC C} : EquivRel E F → EquivRel F G → EquivRel E G
+  | alpha {Γ: Context} {K : Kind} {E : Expression Γ K} {x y : Variable}: EquivRel E (AlphaReduction E x y)
+  | beta {Γ : Context} {x : Variable} {A B : Kind} {E : Expression Γ B} {F : Expression (Delete Γ x A) A} {pf : VarIsInContext Γ x A} : EquivRel (Expression.App (Expression.Lam E x A pf) F ) (BetaReduction Γ x A B E F pf)
+  | yita {Γ : Context} {x : Variable} {A : Kind} {B : Kind} {E :Expression Γ (Kind.function A B)} : EquivRel E (YitaReduction Γ x A B E)
