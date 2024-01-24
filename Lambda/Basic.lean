@@ -44,20 +44,20 @@ def commute : ∀ (M N L : Term) (x y : Sym) (h : x ≠ y),
       by_cases i : M = y
 
       -- when M ≠ x and M = y
-      rw [ if_neg, if_pos ]
+      rw [ if_neg, i ]
       simp
-      rw [ if_pos ]
       induction N with
       | Var N =>
         simp
         by_cases j : N = y
 
         -- when N = y
-        rw [ if_pos ]
+        rw [ j ]
+        simp
         -- here's sorry is because x is not in FV(L),
         -- but this is hard to formal now.
         sorry
-        exact j
+
 
         -- when N ≠ y
         rw [ if_neg ]
@@ -67,7 +67,6 @@ def commute : ∀ (M N L : Term) (x y : Sym) (h : x ≠ y),
 
       | Lam _ _ => sorry
       | App _ _ => sorry
-      repeat exact i
       exact g
 
       -- when M ≠ x and M ≠ y
@@ -78,8 +77,61 @@ def commute : ∀ (M N L : Term) (x y : Sym) (h : x ≠ y),
       repeat exact i
       exact g
 
+      -- N = y a = y
+    | Lam a A =>
+      simp
+      by_cases g : a = x
 
-    | Lam _ _ => sorry
+      -- when a = x
+      rw [ g ]
+      simp
+      rw [ if_neg ]
+      simp
+      exact h
+
+      -- when a ≠ x
+      by_cases i : a = y
+
+      -- when a ≠ x and a = y
+      rw [ if_neg, i ]
+      simp
+      rw [ if_neg ]
+      simp
+
+      induction A with
+      | Var A =>
+        simp
+        by_cases j : A = x
+
+        -- when A = x
+        rw [ j ]
+        simp
+
+        induction N with
+        | Var N =>
+          simp
+          sorry -- not sure, need further work.
+          -- by_cases k : N = y
+
+          -- -- when N = y
+          -- rw [ k ]
+          -- simp
+
+        | Lam _ _ => sorry
+        | App _ _ => sorry
+
+        -- when A ≠ x
+        rw [ if_neg, if_neg ]
+        repeat exact j
+
+      | Lam _ _ => sorry
+      | App _ _ => sorry
+      exact Ne.symm h
+      exact g
+
+      -- when a ≠ x and a ≠ y
+      sorry
+
     | App _ _ => sorry
 
 inductive Reduce : Term -> Term -> Type where
