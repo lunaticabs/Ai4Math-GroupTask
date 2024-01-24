@@ -25,22 +25,43 @@ def subst : Term -> Sym -> Term -> Term
 
 notation : 90 x " [ " y " := " v " ] " => subst x y v
 
-def commute : ∀ M N x y (h : x ≠ y),
+def commute : ∀ (M N L : Term) (x y : Sym) (h : x ≠ y),
   M [x := N] [y := L] = M [y := L] [x := N [y := L]] := by
-    intro M N x y h
+    intro M N L x y h
     induction M with
     | Var M =>
-      have netrans (h : x ≠ y) (g : M = x) : ¬M = y := sorry
-
       simp
       by_cases g : M = x
+
+      -- when M = x
       rw [ g ]
       simp
-      rw [if_neg]
+      rw [ if_neg ]
       simp
       exact h
 
-      sorry
+      -- when M ≠ x
+      by_cases i : M = y
+
+      -- when M ≠ x and M = y
+      rw [ if_neg, if_pos ]
+      simp
+      rw [ if_pos ]
+      induction N with
+      | Var N => sorry
+      | Lam _ _ => sorry
+      | App _ _ => sorry
+      repeat exact i
+      exact g
+
+      -- when M ≠ x and M ≠ y
+      rw [ if_neg, if_neg ]
+      simp
+      rw [ if_neg, if_neg ]
+      exact g
+      repeat exact i
+      exact g
+
 
     | Lam _ _ => sorry
     | App _ _ => sorry
