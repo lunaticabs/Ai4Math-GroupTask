@@ -130,7 +130,45 @@ def commute : ∀ (M N L : Term) (x y : Sym) (h : x ≠ y),
       exact g
 
       -- when a ≠ x and a ≠ y
-      sorry
+      rw [ if_neg, if_neg ]
+      simp
+      rw [ if_neg, if_neg ]
+      simp
+      induction A with
+      | Var A =>
+        simp
+        by_cases j : A = x
+
+        -- when A = x
+        rw [ j ]
+        simp
+        rw [ if_neg ]
+        simp
+        exact h
+
+        by_cases k : A = y
+        --when A ≠ x and A = y
+        rw [ if_neg, if_pos ]
+        simp
+        rw [ if_pos ]
+        -- x not in FV(L)
+        sorry
+        repeat exact k
+        exact j
+
+        -- when A ≠ x and A ≠ y
+        rw [ if_neg, if_neg ]
+        simp
+        rw [ if_neg, if_neg ]
+        exact j
+        repeat exact k
+        exact j
+
+      | Lam _ _ => sorry
+      | App _ _ => sorry
+      exact g
+      repeat exact i
+      exact g
 
     | App _ _ => sorry
 
