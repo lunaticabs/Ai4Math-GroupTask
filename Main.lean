@@ -37,10 +37,15 @@ inductive Term : Ctx → Kind → Type
 --这个版本太烂了，我要写个新的
 -/
 
-def Variable : Type := String
+
+
+
+
+
+/-
+def Variable : Type := String deriving DecidableEq
 inductive Const : Type where
   | unit : Const
-  --If you have other types, then you can add more consts to it
 
 inductive Kind where
   | empty : Kind
@@ -56,7 +61,11 @@ inductive VarIsInContext : Context → Variable → Kind → Type
   | Z {Γ x A} : VarIsInContext (Context.extend Γ x A) x A
   | S {Γ x y A B} : VarIsInContext Γ x A → VarIsInContext (Context.extend Γ y B) x A
 
-def Delete (Γ : Context) (x : Variable) (A : Kind) : Context := sorry
+def Delete (Γ : Context) (x : Variable) (A : Kind) : Context :=
+  match Γ with
+  | Context.empty => Context.empty
+  | Context.extend Γ' y B =>
+    if x = y then Γ' else Context.extend (Delete Γ' x A) y B
 
 inductive Expression : Context → Kind → Type where
   | unit (Γ : Context) : Expression Γ Kind.unit -- If you have other consts, you can add to it, like ℕ
@@ -65,7 +74,18 @@ inductive Expression : Context → Kind → Type where
   | App (E : Expression Γ (Kind.function A B) ) (F : Expression Γ A) : Expression Γ B
 
 def AlphaReduction {Γ : Context} {A : Kind} (E : Expression Γ A) (x y : Variable) : Expression Γ A :=
-  sorry
+  match E with
+  | Expression.unit Γ => Expression.unit Γ
+  | Expression.Var Γ z B pf =>
+      if h : x = z then by sorry
+      else
+        Expression.Var Γ z B pf
+  | Expression.Lam E' z B pf =>
+    if h : x = z then by sorry
+    else by sorry
+  | Expression.App E' F => Expression.App (AlphaReduction E' x y) (AlphaReduction F x y)
+
+
 
 def BetaReduction (Γ : Context) (x : Variable) (A B : Kind) (E : Expression Γ B) (F : Expression (Delete Γ x A) A) (pf : VarIsInContext Γ x A) :  Expression (Delete Γ x A) B :=
   sorry
@@ -74,7 +94,7 @@ def pfVar (Γ : Context) (x : Variable) (A : Kind) : VarIsInContext (Context.ext
 def Varattend (E : Expression Γ (Kind.function A B)) (x : Variable) (A : Kind) : Expression (Context.extend Γ x A) (Kind.function A B) := sorry
 
 def YitaReduction (Γ : Context)  (x : Variable) (A : Kind) {B : Kind} (E : Expression Γ (Kind.function A B)) : Expression Γ (Kind.function A B) :=
-  Expression.Lam (Expression.App (Varattend E x A) (Expression.Var (Context.extend Γ x A) x A (pfVar Γ x A))) x A
+  sorry --Expression.Lam (Expression.App (Varattend E x A) (Expression.Var (Context.extend Γ x A) x A (pfVar Γ x A))) x A
 
 inductive EquivRel : Expression ΓA A → Expression ΓB B → Prop where
   | refl {Γ: Context} {K : Kind} {E : Expression Γ K} : EquivRel E E
@@ -82,4 +102,59 @@ inductive EquivRel : Expression ΓA A → Expression ΓB B → Prop where
   | trans {ΓA ΓB ΓC: Context} {A B C : Kind} {E : Expression ΓA A} {F : Expression ΓB B} {G : Expression ΓC C} : EquivRel E F → EquivRel F G → EquivRel E G
   | alpha {Γ: Context} {K : Kind} {E : Expression Γ K} {x y : Variable}: EquivRel E (AlphaReduction E x y)
   | beta {Γ : Context} {x : Variable} {A B : Kind} {E : Expression Γ B} {F : Expression (Delete Γ x A) A} {pf : VarIsInContext Γ x A} : EquivRel (Expression.App (Expression.Lam E x A pf) F ) (BetaReduction Γ x A B E F pf)
-  | yita {Γ : Context} {x : Variable} {A : Kind} {B : Kind} {E :Expression Γ (Kind.function A B)} : EquivRel E (YitaReduction Γ x A B E)
+  | yita {Γ : Context} {x : Variable} {A : Kind} {B : Kind} {E :Expression Γ (Kind.function A B)} : EquivRel E (YitaReduction Γ x A E)
+-/
+
+
+
+
+
+
+def Variable : Type := String deriving DecidableEq
+def Name : Type := String deriving DecidableEq
+
+
+inductive Con : Type
+  | mk (name : Name) (n : Nat) (conMap : Fin n → C) : Con
+
+inductive Rec  : Type
+  | mk (name : Name ) : Rec
+
+inductive Const : Type where
+  | unit : Const
+
+inductive Kind where
+  | empty : Kind
+  | unit : Kind
+  | con (name : Name) (n : Nat) (conMap : Fin n → C) : C → Kind
+  | re (name : Name) (n : Nat) (conMap : Fin n → C) (i : ℕ ): (d : con name n conMap C) → conMap i
+
+inductive Context : Type where
+  | empty : Context
+  | extend : Context → Variable → Kind → Context
+
+inductive VarIsInContext : Context → Variable → Kind → Type
+  | Z {Γ x A} : VarIsInContext (Context.extend Γ x A) x A
+  | S {Γ x y A B} : VarIsInContext Γ x A → VarIsInContext (Context.extend Γ y B) x A
+
+def Delete (Γ : Context) (x : Variable) (A : Kind) : Context :=
+  match Γ with
+  | Context.empty => Context.empty
+  | Context.extend Γ' y B =>
+    if x = y then Γ' else Context.extend (Delete Γ' x A) y B
+
+inductive Expression : Context → Kind → Type where
+  | unit (Γ : Context) : Expression Γ Kind.unit
+  | Var (Γ : Context) (x : Variable) (A : Kind) : VarIsInContext Γ x A → Expression Γ A
+  | con {Γ : Context} {name : Name} {n : Nat} {conMap : Fin n → C} (Exi : Fin n → Expression Γ  (conMap i) ) : Expression Γ Con.mk name n conMap C
+
+
+def AlphaReduction {Γ : Context} {A : Kind} (E : Expression Γ A) (x y : Variable) : Expression Γ A :=
+  match E with
+  | Expression.unit Γ => Expression.unit Γ
+  | Expression.Var Γ z B pf =>
+      if h : x = z then by sorry
+      else
+        Expression.Var Γ z B pf
+
+def Reduction {Γ : Context} {name : Name} {n : Nat} {conMap : Fin n → C} (Exi : Fin n → Expression Γ  (conMap i) ) := sorry
